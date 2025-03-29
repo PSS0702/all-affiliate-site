@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Metadata } from 'next';
+import { Metadata, ResolvingMetadata } from 'next';
 
 const prisma = new PrismaClient();
 
@@ -33,6 +33,11 @@ interface Product {
   coupons: Coupon[];
 }
 
+type Props = {
+  params: { id: string }
+  searchParams: { [key: string]: string | string[] | undefined }
+}
+
 async function getProduct(id: string): Promise<Product> {
   const product = await prisma.product.findUnique({
     where: { id },
@@ -56,7 +61,10 @@ async function getProduct(id: string): Promise<Product> {
   return product as Product;
 }
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+export async function generateMetadata(
+  { params }: Props,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
   const product = await getProduct(params.id);
   
   return {
@@ -70,7 +78,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   };
 }
 
-export default async function ProductPage({ params }: { params: { id: string } }) {
+export default async function ProductPage({ params }: Props) {
   const product = await getProduct(params.id);
 
   return (
